@@ -21,6 +21,8 @@ var mysqlDatabase = _interopRequireWildcard(require("./database/mysqlDatabase"))
 
 var _imageUploader = _interopRequireDefault(require("./imageUploader"));
 
+var ec2Meta = _interopRequireWildcard(require("./ec2Meta"));
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -82,20 +84,36 @@ function _ref() {
     }));
     app.get('/status', /*#__PURE__*/function () {
       var _ref2 = _asyncToGenerator(function* (req, res) {
+        var mysql;
+
         try {
           var connection = yield database.status();
-          res.send({
-            mysql: {
-              state: connection.state,
-              host: connection.host,
-              datbase: connection.database
-            }
-          });
+          mysql = {
+            state: connection.state,
+            host: connection.host,
+            datbase: connection.database
+          };
         } catch (err) {
-          res.send({
-            mysql: err
-          });
+          mysql = err;
         }
+
+        var ec2;
+
+        try {
+          ec2.ipv4 = yield ec2Meta.ipv4();
+          ec2.hostname = yield ec2Meta.hostname();
+          ec2.instanceId = yield ec2Meta.instanceId();
+        } catch (err) {
+          console.log(err);
+          ec2 = "error";
+        }
+
+        var data = {
+          mysql,
+          ec2
+        };
+        console.log(data);
+        res.send(data);
       });
 
       return function (_x2, _x3) {
