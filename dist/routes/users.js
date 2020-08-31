@@ -40,14 +40,18 @@ function _default(_ref) {
 
   router.post('/', upload, /*#__PURE__*/function () {
     var _ref3 = _asyncToGenerator(function* (req, res, next) {
-      var image = req.file;
-      var user = req.body.user;
-      console.log(image, user);
-      res.send({
+      var image = req.file; // const user = req.body.user
+      // console.log(image, user)
+      // res.send({user})
+
+      var user = yield database.createUser(req.body.user);
+      req.session.user = {
+        id: user.id
+      };
+      sendUser({
+        res,
         user
-      }); // const user = await database.createUser(req.body.user)
-      // req.session.user = {id: user.id}
-      // sendUser({res, user})
+      });
     });
 
     return function (_x, _x2, _x3) {
