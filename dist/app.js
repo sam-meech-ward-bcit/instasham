@@ -97,7 +97,7 @@ function _ref() {
           mysql = err;
         }
 
-        var ec2;
+        var ec2 = {};
 
         try {
           ec2.ipv4 = yield ec2Meta.ipv4();
