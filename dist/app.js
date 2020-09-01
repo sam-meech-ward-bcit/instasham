@@ -108,9 +108,11 @@ function _ref() {
           ec2 = "error";
         }
 
+        var other = {};
         var data = {
           mysql,
-          ec2
+          ec2,
+          other
         };
         console.log(data);
         res.send(data);
