@@ -88,6 +88,7 @@ function _status() {
           host: dbDetails.host,
           database: dbDetails.database
         }));
+        connection.end();
       });
     });
   });

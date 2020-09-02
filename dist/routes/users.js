@@ -45,6 +45,7 @@ function _default(_ref) {
       // res.send({user})
 
       var user = yield database.createUser(req.body.user);
+      console.log("Created user", user);
       req.session.user = {
         id: user.id
       };
