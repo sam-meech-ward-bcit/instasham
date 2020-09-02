@@ -3,11 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.storeSession = storeSession;
 exports.status = status;
 exports.end = end;
 exports.run = run;
 exports.getPosts = getPosts;
+exports.getComments = getComments;
 exports.getPost = getPost;
 exports.createPost = createPost;
 exports.likePost = likePost;
@@ -19,8 +19,6 @@ exports.createUser = createUser;
 var _bcryptjs = _interopRequireDefault(require("bcryptjs"));
 
 var _mysql = _interopRequireDefault(require("mysql"));
-
-var _expressMysqlSession = _interopRequireDefault(require("express-mysql-session"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -43,33 +41,6 @@ var dbDetails = {
 };
 
 var connection = _mysql.default.createPool(dbDetails);
-
-function storeSession(_x) {
-  return _storeSession.apply(this, arguments);
-}
-
-function _storeSession() {
-  _storeSession = _asyncToGenerator(function* (_ref) {
-    var {
-      session
-    } = _ref;
-    var Store = (0, _expressMysqlSession.default)(session);
-    return new Promise((resolve, reject) => {
-      connection.getConnection(function (err, connection) {
-        if (err) {
-          resolve(null);
-          return;
-        }
-
-        var sessionStore = new Store({}
-        /* session store options */
-        , connection);
-        resolve(sessionStore);
-      });
-    });
-  });
-  return _storeSession.apply(this, arguments);
-}
 
 function status() {
   return _status.apply(this, arguments);
@@ -167,12 +138,20 @@ function callProcedure(name) {
   });
 }
 
-function getPosts(_ref2) {
+function getPosts(_ref) {
   var {
     userId,
     limit
-  } = _ref2;
+  } = _ref;
   return callProcedure('get_posts', limit, userId).then(rows => rows.map(parsePost));
+}
+
+function getComments(_ref2) {
+  var {
+    postId,
+    limit
+  } = _ref2;
+  return callProcedure('get_comments', limit, postId).then(rows => rows.map(parseComment));
 }
 
 function getPost(_ref3) {
@@ -183,7 +162,7 @@ function getPost(_ref3) {
   return callProcedure('get_post', postId, userId).then(rows => parsePost(rows[0]));
 }
 
-function createPost(_x2) {
+function createPost(_x) {
   return _createPost.apply(this, arguments);
 }
 
@@ -212,7 +191,7 @@ function _createPost() {
   return _createPost.apply(this, arguments);
 }
 
-function likePost(_x3) {
+function likePost(_x2) {
   return _likePost.apply(this, arguments);
 }
 
@@ -232,7 +211,7 @@ function _likePost() {
   return _likePost.apply(this, arguments);
 }
 
-function addComment(_x4) {
+function addComment(_x3) {
   return _addComment.apply(this, arguments);
 } // export async function likeComment({ userId, commentId }) {
 //   await callProcedure('like_comment', userId, postId)
@@ -292,7 +271,8 @@ function createUser(_ref7) {
     email,
     username,
     password,
-    fullName
+    fullName,
+    profilePhoto
   } = _ref7;
   return new Promise((resolve, reject) => {
     _bcryptjs.default.hash(password, 12, (error, encrypted) => {
@@ -301,7 +281,7 @@ function createUser(_ref7) {
         return;
       }
 
-      callProcedure('create_user', username, encrypted, email, fullName).then(rows => resolve(rows[0])).catch(reject);
+      callProcedure('create_user', username, encrypted, email, fullName, profilePhoto).then(rows => resolve(rows[0])).catch(reject);
     });
   });
 }

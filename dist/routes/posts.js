@@ -45,6 +45,7 @@ function _default(_ref) {
         url: "/images/posts/".concat(file.filename),
         type: 'image'
       }));
+      console.log('user', req.user);
       var post = yield database.createPost({
         userId: req.user.id,
         description: req.body.description,
@@ -62,7 +63,14 @@ function _default(_ref) {
 
   router.get('/:id/comments', authorize, /*#__PURE__*/function () {
     var _ref4 = _asyncToGenerator(function* (req, res, next) {
-      res.send({});
+      var postId = req.params.id;
+      var comments = yield database.getComments({
+        limit: 100,
+        postId
+      });
+      res.send({
+        comments
+      });
     });
 
     return function (_x7, _x8, _x9) {
