@@ -52,7 +52,12 @@ function _default(_ref) {
   router.post('/', upload, /*#__PURE__*/function () {
     var _ref3 = _asyncToGenerator(function* (req, res, next) {
       var image = req.file;
-      var user = JSON.parse(req.body.user);
+      var user = req.body.user;
+
+      if (typeof user === 'string') {
+        user = JSON.parse(user);
+      }
+
       var imageUrl = "/images/avatars/".concat(image.filename);
       console.log('avatar', image, 'user', user, 'imageUrl', imageUrl);
 

@@ -9,6 +9,8 @@ var _express = _interopRequireDefault(require("express"));
 
 var _path = _interopRequireDefault(require("path"));
 
+var _fs = _interopRequireDefault(require("fs"));
+
 var _morgan = _interopRequireDefault(require("morgan"));
 
 var _cookieParser = _interopRequireDefault(require("cookie-parser"));
@@ -65,15 +67,28 @@ function _ref() {
     app.use('/api/status', (0, _status.default)({
       database
     }));
+
+    function handleFileRequest(filePath, res) {
+      _fs.default.access(filePath, err => {
+        if (err) {
+          console.log("The file does not exist.");
+          res.sendStatus(404);
+          return;
+        }
+
+        res.sendFile(filePath);
+      });
+    }
+
     app.get('/images/posts/:filename', jwt.authenticateJWT, (req, res, next) => {
       var imagePath = _path.default.join(_imageUploader.default.fullPostsDir, req.params.filename);
 
-      res.sendFile(imagePath);
+      handleFileRequest(imagePath, res);
     });
     app.get('/images/avatars/:filename', jwt.authenticateJWT, (req, res, next) => {
       var imagePath = _path.default.join(_imageUploader.default.fullAvatarsDir, req.params.filename);
 
-      res.sendFile(imagePath);
+      handleFileRequest(imagePath, res);
     });
     app.get('*', (req, res) => {
       res.sendFile(_path.default.join(__dirname, '../build/index.html'));
