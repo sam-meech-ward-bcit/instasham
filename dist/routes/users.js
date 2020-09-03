@@ -63,7 +63,7 @@ function _default(_ref) {
         console.log("Created user", dbuser);
         sendUser({
           res,
-          dbuser
+          user: dbuser
         });
       } catch (error) {
         console.log(error);
