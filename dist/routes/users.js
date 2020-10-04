@@ -66,7 +66,7 @@ function _default(_ref) {
 
       var imageUrl = "/images/avatars/".concat(image.filename);
 
-      var filePath = _path.default.join(uploadsDir, file.filename);
+      var filePath = _path.default.join(uploadsDir, image.filename);
 
       console.log('avatar', image, 'user', user, 'imageUrl', imageUrl);
 
