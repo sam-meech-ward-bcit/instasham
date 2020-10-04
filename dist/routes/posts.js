@@ -7,6 +7,10 @@ exports.default = _default;
 
 var _express = _interopRequireDefault(require("express"));
 
+var _fs = _interopRequireDefault(require("fs"));
+
+var _path = _interopRequireDefault(require("path"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -17,7 +21,9 @@ function _default(_ref) {
   var {
     database,
     authorize,
-    upload
+    upload,
+    uploadsDir,
+    s3
   } = _ref;
 
   var router = _express.default.Router(); // get all posts
@@ -43,17 +49,38 @@ function _default(_ref) {
     var _ref3 = _asyncToGenerator(function* (req, res, next) {
       var media = req.files.map(file => ({
         url: "/images/posts/".concat(file.filename),
-        type: 'image'
+        type: 'image',
+        path: _path.default.join(uploadsDir, file.filename)
       }));
       console.log('user', req.user);
-      var post = yield database.createPost({
-        userId: req.user.id,
-        description: req.body.description,
-        media
-      });
-      res.send({
-        post
-      });
+
+      try {
+        var results = [];
+
+        for (var file of media) {
+          var result = yield s3.upload({
+            file: file.path
+          });
+          results.push(result);
+        }
+
+        var post = yield database.createPost({
+          userId: req.user.id,
+          description: req.body.description,
+          media
+        });
+        res.send({
+          post
+        });
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          error: error.message
+        });
+      } // Delete the temporary files
+
+
+      media.forEach(file => _fs.default.unlinkSync(file.path));
     });
 
     return function (_x4, _x5, _x6) {

@@ -7,6 +7,10 @@ exports.default = _default;
 
 var _express = _interopRequireDefault(require("express"));
 
+var _path = _interopRequireDefault(require("path"));
+
+var _fs = _interopRequireDefault(require("fs"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -24,7 +28,9 @@ function _default(_ref) {
     database,
     authorize,
     upload,
-    generateAccessToken
+    generateAccessToken,
+    s3,
+    uploadsDir
   } = _ref;
 
   var router = _express.default.Router();
@@ -59,9 +65,15 @@ function _default(_ref) {
       }
 
       var imageUrl = "/images/avatars/".concat(image.filename);
+
+      var filePath = _path.default.join(uploadsDir, file.filename);
+
       console.log('avatar', image, 'user', user, 'imageUrl', imageUrl);
 
       try {
+        var result = yield s3.upload({
+          file: filePath
+        });
         var dbuser = yield database.createUser(_objectSpread(_objectSpread({}, user), {}, {
           profilePhoto: imageUrl
         }));

@@ -15,6 +15,8 @@ var _morgan = _interopRequireDefault(require("morgan"));
 
 var _cookieParser = _interopRequireDefault(require("cookie-parser"));
 
+var _s3Manager = _interopRequireDefault(require("./s3Manager"));
+
 var _users = _interopRequireDefault(require("./routes/users"));
 
 var _posts = _interopRequireDefault(require("./routes/posts"));
@@ -37,6 +39,13 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+var bucketName = process.env.BUCKET_NAME || "";
+var region = process.env.BUCKET_REGION || "";
+var s3 = (0, _s3Manager.default)({
+  bucketName,
+  region
+});
+
 function _default(_x) {
   return _ref.apply(this, arguments);
 }
@@ -54,15 +63,19 @@ function _ref() {
     }));
     app.use(_express.default.static(_path.default.join(__dirname, '../public')));
     app.use('/api/users', (0, _users.default)({
+      s3,
       database,
       authorize: jwt.authenticateJWT,
       upload: _imageUploader.default.uploadAvatar,
-      generateAccessToken: jwt.generateAccessToken
+      generateAccessToken: jwt.generateAccessToken,
+      uploadsDir: _imageUploader.default.fullAvatarsDir
     }));
     app.use('/api/posts', (0, _posts.default)({
+      s3,
       database,
       authorize: jwt.authenticateJWT,
-      upload: _imageUploader.default.uploadPosts
+      upload: _imageUploader.default.uploadPosts,
+      uploadsDir: _imageUploader.default.fullPostsDir
     }));
     app.use('/api/status', (0, _status.default)({
       database
@@ -80,16 +93,25 @@ function _ref() {
       });
     }
 
-    app.get('/images/posts/:filename', jwt.authenticateJWT, (req, res, next) => {
-      var imagePath = _path.default.join(_imageUploader.default.fullPostsDir, req.params.filename);
+    function getImage(req, res, next) {
+      try {
+        var {
+          fileKey
+        } = req.params;
+        var stream = s3.getStream({
+          fileKey
+        });
+        stream.pipe(res);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          error: JSON.stringify(error)
+        });
+      }
+    }
 
-      handleFileRequest(imagePath, res);
-    });
-    app.get('/images/avatars/:filename', jwt.authenticateJWT, (req, res, next) => {
-      var imagePath = _path.default.join(_imageUploader.default.fullAvatarsDir, req.params.filename);
-
-      handleFileRequest(imagePath, res);
-    });
+    app.get('/images/posts/:fileKey', getImage);
+    app.get('/images/avatars/:fileKey', jwt.authenticateJWT, getImage);
     app.get('*', (req, res) => {
       res.sendFile(_path.default.join(__dirname, '../build/index.html'));
     });
