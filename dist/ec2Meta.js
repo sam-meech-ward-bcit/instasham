@@ -5,7 +5,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.ec2Meta = ec2Meta;
 exports.ipv4 = ipv4;
+exports.ipv4Public = ipv4Public;
 exports.instanceId = instanceId;
+exports.iam = iam;
 exports.hostname = hostname;
 
 var _axios = _interopRequireDefault(require("axios"));
@@ -49,6 +51,22 @@ function _ipv() {
   return _ipv.apply(this, arguments);
 }
 
+function ipv4Public() {
+  return _ipv4Public.apply(this, arguments);
+}
+
+function _ipv4Public() {
+  _ipv4Public = _asyncToGenerator(function* () {
+    try {
+      var result = yield instance.get('/public-ipv4');
+      return result.data;
+    } catch (err) {
+      return err.response.status;
+    }
+  });
+  return _ipv4Public.apply(this, arguments);
+}
+
 function instanceId() {
   return _instanceId.apply(this, arguments);
 }
@@ -59,6 +77,22 @@ function _instanceId() {
     return result.data;
   });
   return _instanceId.apply(this, arguments);
+}
+
+function iam() {
+  return _iam.apply(this, arguments);
+}
+
+function _iam() {
+  _iam = _asyncToGenerator(function* () {
+    try {
+      var result = yield instance.get('/iam/info');
+      return result.data;
+    } catch (err) {
+      return err.response.status;
+    }
+  });
+  return _iam.apply(this, arguments);
 }
 
 function hostname() {
